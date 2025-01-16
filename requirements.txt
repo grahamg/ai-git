@@ -1,0 +1,14 @@
+# Core dependencies
+gitpython>=3.1.40     # Git operations
+requests>=2.31.0      # HTTP client for Ollama API
+click>=8.1.7         # Command line interface
+
+# Optional but recommended
+colorama>=0.4.6      # Cross-platform colored terminal output
+tqdm>=4.66.1         # Progress bars for long operations
+
+# Development dependencies (commented out by default)
+# pytest>=7.4.3       # Testing framework
+# black>=23.11.0      # Code formatting
+# pylint>=3.0.2       # Code linting
+# mypy>=1.7.0         # Static type checking
