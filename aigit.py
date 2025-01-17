@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 """
-AI-Driven Git Tool - A Python-based tool for managing AI-driven git changes
+AI-Driven Git Tool - A Python-based tool for managing AI-driven git changes.
+
+https://github.com/grahamg/ai-git
 """
 
 import os
