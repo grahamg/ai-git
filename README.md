@@ -1,4 +1,4 @@
-# AI Git Tool
+# ai-git
 
 An interactive command-line tool for AI-assisted code modifications using Git and Ollama.
 
