@@ -77,7 +77,7 @@ python aigit.py /path/to/your/repository --ollama-host "http://localhost:11434" 
 | `review` | Review pending changes | `review` |
 | `commit <msg>` | Commit current changes | `commit "Add error handling"` |
 | `rollback` | Rollback last commit | `rollback` |
-| `merge` | Merge current branch to master | `merge` |
+| `merge` | Merge current branch to main | `merge` |
 | `add-context <file>` | Add file to context | `add-context src/utils.py` |
 | `rm-context <file>` | Remove file from context | `rm-context src/errors.py` |
 | `clear-context` | Clear current context | `clear-context` |
@@ -114,7 +114,7 @@ ai-git> review
 ai-git> commit "Add error handling for file operations"
 ```
 
-6. Merge to master after testing:
+6. Merge to main after testing:
 ```
 ai-git> merge
 ```
@@ -189,7 +189,7 @@ Edit `.git/ai-tool-config.json` to customize:
 2. Review changes carefully before committing
 3. Keep context files relevant to the current task
 4. Use clear, descriptive commit messages
-5. Test changes before merging to master
+5. Test changes before merging to main
 
 ### Effective Prompting
 1. Be specific about the desired changes:
@@ -220,7 +220,7 @@ Edit `.git/ai-tool-config.json` to customize:
 1. One branch per feature/task
 2. Clear documentation of changes
 3. Regular commits for trackability
-4. Clean merges to master
+4. Clean merges to main
 
 ## Troubleshooting
 
@@ -290,7 +290,7 @@ python aigit.py /path/to/repo
 2. Branch Recovery
 ```bash
 # If branch state is corrupted:
-git checkout master
+git checkout main
 git branch -D corrupted-branch
 ai-git> new-branch feature/retry
 ```
