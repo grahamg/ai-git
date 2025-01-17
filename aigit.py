@@ -2,7 +2,7 @@
 
 """
 AI-Driven Git Tool - A Python-based tool for managing AI-driven git changes.
-
+Graham Greenfield, 2025
 https://github.com/grahamg/ai-git
 """
 
