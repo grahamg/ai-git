@@ -79,9 +79,11 @@ python aigit.py /path/to/your/repository --ollama-host "http://localhost:11434" 
 | `rollback` | Rollback last commit | `rollback` |
 | `merge` | Merge current branch to master | `merge` |
 | `add-context <file>` | Add file to context | `add-context src/utils.py` |
+| `rm-context <file>` | Remove file from context | `rm-context src/errors.py` |
 | `clear-context` | Clear current context | `clear-context` |
 | `show-context` | Show current context files | `show-context` |
-| `quit` | Exit REPL | `quit` |
+| `shell` | Open OS shell in repository | `shell` |
+| `exit` \| `quit` | Exit REPL | `quit` |
 | `help` | Show available commands | `help` |
 
 ### Workflow Example
