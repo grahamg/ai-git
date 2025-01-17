@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/env python3
 """
 AI-Driven Git Tool - A Python-based tool for managing AI-driven git changes
 """
 
 import os
+import subprocess
 import sys
 import json
 import logging
@@ -228,7 +228,7 @@ Respond only with the file changes, using the format specified above.
 """
 
         payload = {
-            "model": "codellama",
+            "model": "llama3",
             "prompt": structured_prompt,
             "stream": False,
             "temperature": 0.7
@@ -292,17 +292,17 @@ Respond only with the file changes, using the format specified above.
             self.logger.error(f"Failed to rollback: {e}")
             return False
 
-    def merge_to_master(self) -> bool:
-        """Merge current branch to master after review"""
+    def merge_to_main(self) -> bool:
+        """Merge current branch to main after review"""
         try:
-            # Check if master branch exists
-            if 'master' not in self.repo.heads:
-                self.logger.error("Master branch does not exist")
+            # Check if main branch exists
+            if 'main' not in self.repo.heads:
+                self.logger.error("Main branch does not exist")
                 return False
 
             # Store current branch for recovery
             current = self.repo.active_branch
-            master = self.repo.heads.master
+            main = self.repo.heads.main
 
             # Check for uncommitted changes
             if self.repo.is_dirty():
@@ -310,7 +310,7 @@ Respond only with the file changes, using the format specified above.
                 return False
 
             try:
-                master.checkout()
+                main.checkout()
                 self.repo.git.merge(self.session.branch)
                 return True
             except git.GitCommandError as e:
@@ -329,7 +329,7 @@ Respond only with the file changes, using the format specified above.
                 return False
 
         except Exception as e:
-            self.logger.error(f"Failed to merge to master: {e}")
+            self.logger.error(f"Failed to merge to main: {e}")
             self.repo.git.merge('--abort')
             return False
 
@@ -341,7 +341,7 @@ class AIGitREPL:
     def start(self):
         """Start the REPL interface"""
         print("Welcome to AI Git Tool")
-        print("Type 'help' for available commands")
+        self.show_help()
 
         while True:
             try:
@@ -353,7 +353,9 @@ class AIGitREPL:
                 cmd = parts[0]
                 args = parts[1] if len(parts) > 1 else ""
 
-                if cmd == "quit":
+                if cmd == "exit":
+                    break
+                elif cmd == "quit":
                     break
                 elif cmd == "help":
                     self.show_help()
@@ -371,15 +373,21 @@ class AIGitREPL:
                     self.cmd_merge()
                 elif cmd == "add-context":
                     self.cmd_add_context(args)
+                elif cmd == "rm-context":
+                    self.cmd_rm_context(args)
                 elif cmd == "clear-context":
                     self.cmd_clear_context()
                 elif cmd == "show-context":
                     self.cmd_show_context()
+                elif cmd == "shell":
+                    self.cmd_shell()
                 else:
                     print(f"Unknown command: {cmd}")
 
             except KeyboardInterrupt:
-                print("\nUse 'quit' to exit")
+                print("\nUse 'exit' to exit")
+            except EOFError:
+                break
             except Exception as e:
                 print(f"Error: {e}")
 
@@ -389,15 +397,17 @@ class AIGitREPL:
 Commands:
   new-branch <name>  - Create new feature branch
   prompt <text>      - Submit prompt for code changes
-  review            - Review pending changes
-  commit <msg>      - Commit current changes
-  rollback          - Rollback last commit
-  merge             - Merge current branch to master
+  review             - Review pending changes
+  commit <msg>       - Commit current changes
+  rollback           - Rollback last commit
+  merge              - Merge current branch to main
   add-context <file> - Add file to context
-  clear-context     - Clear current context
-  show-context      - Show current context files
-  quit              - Exit REPL
-  help              - Show this message
+  rm-context <file>  - Remove file to context
+  clear-context      - Clear current context
+  show-context       - Show current context files
+  shell              - Open OS shell in repository
+  exit | quit        - Exit REPL
+  help               - Show this message
         """.strip())
 
     def cmd_new_branch(self, args):
@@ -421,6 +431,12 @@ Commands:
 
         try:
             response = self.tool.make_ollama_request(args)
+            parts = response['response'].split('FILE:', 1)
+            if len(parts) > 1:
+                explanation = parts[0].strip()
+                if explanation:
+                    print(f"\n{explanation}\n")
+
             changes = self._parse_ollama_response(response)
             if self.tool.apply_changes(changes):
                 print("Changes applied. Use 'review' to inspect changes.")
@@ -510,22 +526,22 @@ Commands:
             print("Failed to rollback changes")
 
     def cmd_merge(self):
-        """Handle merge to master command"""
+        """Handle merge to main command"""
         if not self.tool.session:
             print("No active session")
             return
             
-        print("\nWARNING: This will merge current branch to master.")
+        print("\nWARNING: This will merge current branch to main.")
         confirm = input("Are you sure? (yes/no): ").strip().lower()
         
         if confirm != 'yes':
             print("Merge cancelled")
             return
             
-        if self.tool.merge_to_master():
-            print(f"Branch {self.tool.session.branch} merged to master")
+        if self.tool.merge_to_main():
+            print(f"Branch {self.tool.session.branch} merged to main")
         else:
-            print("Failed to merge to master")
+            print("Failed to merge to main")
 
     def cmd_add_context(self, args):
         """Add file to context"""
@@ -547,6 +563,24 @@ Commands:
         self.tool.session.context_files.add(str(file_path))
         self.tool._save_session()
         print(f"Added to context: {args}")
+
+    def cmd_rm_context(self, args):
+        """Remove file from context"""
+        if not self.tool.session:
+            print("No active session")
+            return
+
+        if not args:
+            print("Error: File path required")
+            return
+
+        if args in self.tool.session.context_files:
+            self.tool.session.context_files.remove(args)
+            self.tool._save_session()
+            print(f"Removed from context: {args}")
+        else:
+            print("File is not in context")
+            print("Use 'show-context' to see current context files")
 
     def cmd_clear_context(self):
         """Clear current context"""
@@ -574,6 +608,26 @@ Commands:
                 print(f"  - {file}")
         else:
             print("  (none)")
+
+    def cmd_shell(self):
+        """Open an OS shell in the repository directory"""
+        if not self.tool.session:
+            print("No active session")
+            return
+
+        print("\nEntering shell... (exit or Ctrl-D to return to ai-git)")
+        print(f"Current branch: {self.tool.session.branch}")
+
+        # Determine shell command based on OS
+        shell = os.environ.get('SHELL', 'bash')
+        if os.name == 'nt':
+            shell = os.environ.get('COMSPEC', 'cmd.exe')
+
+        try:
+            subprocess.run([shell], cwd=str(self.tool.repo_path))
+            print("\nReturning to ai-git...")
+        except Exception as e:
+            print(f"Error running shell: {e}")
 
 
 def cleanup_handler(signum, frame):
